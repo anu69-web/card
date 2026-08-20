@@ -810,6 +810,129 @@ section {
     color: #553338;
 }
 
+.story-card.clickable-chapter {
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+}
+
+.story-card.clickable-chapter:active {
+    transform: scale(0.97);
+}
+
+.read-hint-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--rose-accent);
+    background: #FFF4EA;
+    padding: 4px 10px;
+    border-radius: 10px;
+    margin-top: 4px;
+    display: inline-block;
+    align-self: flex-start;
+    border: 1px solid rgba(200, 75, 91, 0.2);
+    transition: all 0.2s;
+}
+
+.read-hint-tag.highlight {
+    background: #FCE8EC;
+    color: var(--burgundy);
+}
+
+.story-card:hover .read-hint-tag {
+    background: var(--rose-accent);
+    color: white;
+}
+
+/* =========================================
+   8.1 INDIVIDUAL CHAPTER DETAIL SCREENS
+========================================= */
+.chapter-board {
+    max-width: 580px;
+    width: 95%;
+    margin: 0 auto;
+}
+
+.chapter-board.highlight-board {
+    border: 3px dashed var(--rose-accent);
+    background: linear-gradient(180deg, #FFF9FA 0%, var(--cream) 100%);
+}
+
+.chapter-badge {
+    display: inline-block;
+    background: #FCE8EC;
+    color: var(--rose-accent);
+    font-weight: 700;
+    font-size: 12px;
+    padding: 4px 14px;
+    border-radius: 14px;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+.chapter-badge.highlight-badge {
+    background: var(--rose-accent);
+    color: white;
+}
+
+.chapter-detail-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(24px, 5vw, 28px);
+    color: var(--burgundy);
+    margin-bottom: 6px;
+}
+
+.chapter-decor-banner {
+    font-size: 24px;
+    margin: 10px 0;
+    letter-spacing: 6px;
+}
+
+.chapter-reading-card {
+    background: white;
+    border-radius: var(--border-radius-md);
+    padding: clamp(18px, 4vw, 26px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    border: 1px solid rgba(200, 75, 91, 0.15);
+    margin: 14px 0 20px 0;
+    text-align: left;
+}
+
+.chapter-quote {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(19px, 4.2vw, 22px);
+    color: var(--rose-accent);
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 14px;
+    padding-left: 12px;
+    border-left: 3px solid var(--rose-accent);
+}
+
+.chapter-body-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #4A282D;
+}
+
+.nav-next-chapter {
+    background: var(--rose-accent);
+    color: white;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: 25px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(200, 75, 91, 0.3);
+    transition: transform 0.15s, background 0.15s;
+}
+
+.nav-next-chapter:active {
+    transform: scale(0.94);
+    background: var(--burgundy);
+}
+
 /* =========================================
    9. POLAROIDS & GARLAND
 ========================================= */

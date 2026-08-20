@@ -35,27 +35,56 @@ const miniEqualizer = document.getElementById("miniEqualizer");
 const globalMusicBar = document.getElementById("global-music-bar");
 
 // ------------------------------------------
-// Haptic & Sound Effects (Tactile & Resilient)
+// Haptic & Sound Effects (Instant & Multi-Mode)
 // ------------------------------------------
 function triggerHaptic(type = "medium") {
     const tg = window.Telegram?.WebApp;
     if (tg?.HapticFeedback) {
         try {
-            if (type === "success") tg.HapticFeedback.notificationOccurred("success");
-            else if (type === "error") tg.HapticFeedback.notificationOccurred("error");
-            else if (type === "warning") tg.HapticFeedback.notificationOccurred("warning");
-            else tg.HapticFeedback.impactOccurred(type);
+            if (type === "success") {
+                tg.HapticFeedback.notificationOccurred("success");
+            } else if (type === "error") {
+                tg.HapticFeedback.notificationOccurred("error");
+            } else if (type === "warning") {
+                tg.HapticFeedback.notificationOccurred("warning");
+            } else if (type === "light") {
+                tg.HapticFeedback.impactOccurred("light");
+                tg.HapticFeedback.selectionChanged?.();
+            } else if (type === "heavy") {
+                tg.HapticFeedback.impactOccurred("heavy");
+            } else {
+                // "medium" or default impact
+                tg.HapticFeedback.impactOccurred("medium");
+                tg.HapticFeedback.selectionChanged?.();
+            }
         } catch (e) {}
     }
-    // Mobile vibration fallback for browser/webview compatibility
+
+    // Hardware Vibration API fallback for mobile webviews & Chrome/Safari
     try {
         if (navigator.vibrate) {
-            if (type === "success") navigator.vibrate([20, 30, 40]);
-            else if (type === "error") navigator.vibrate([40, 40, 40]);
-            else navigator.vibrate(15);
+            if (type === "success") navigator.vibrate([30, 40, 35]);
+            else if (type === "error") navigator.vibrate([50, 40, 50]);
+            else navigator.vibrate(30);
         }
     } catch (e) {}
 }
+
+// Global instant tactile touch feedback on finger press
+["pointerdown", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, (e) => {
+        const btn = e.target.closest("button, .nav-arrow-btn, .nav-back-btn, .key-btn, .story-card, .pill-btn, .box, .music-btn");
+        if (btn) {
+            if (btn.classList.contains("danger") || btn.id === "tryAgainBtn") {
+                triggerHaptic("error");
+            } else if (btn.id === "sendLoveBtn" || btn.id === "letterNextBtn") {
+                triggerHaptic("success");
+            } else {
+                triggerHaptic("medium");
+            }
+        }
+    }, { passive: true });
+});
 
 function playSound(audioEl) {
     if (audioEl) {
@@ -106,7 +135,7 @@ if (floatingMusicToggle) floatingMusicToggle.addEventListener("click", toggleMus
 // Screen Navigation
 // ------------------------------------------
 function showScreen(screenId) {
-    screens.forEach(screen => {
+    document.querySelectorAll("section").forEach(screen => {
         screen.classList.remove("active-screen");
         screen.classList.add("hidden-screen");
     });
@@ -254,6 +283,39 @@ document.getElementById("firstsNextBtn")?.addEventListener("click", () => {
     showScreen("memories-screen");
 });
 
+// Interactive Chapter Cards Navigation
+document.getElementById("storyCard1")?.addEventListener("click", () => {
+    triggerHaptic("medium");
+    showScreen("chapter1-screen");
+});
+
+document.getElementById("storyCard2")?.addEventListener("click", () => {
+    triggerHaptic("medium");
+    showScreen("chapter2-screen");
+});
+
+document.getElementById("storyCard3")?.addEventListener("click", () => {
+    triggerHaptic("medium");
+    showScreen("chapter3-screen");
+});
+
+// Dedicated Chapter Screen Next Buttons
+document.getElementById("ch1NextBtn")?.addEventListener("click", () => {
+    triggerHaptic("medium");
+    showScreen("chapter2-screen");
+});
+
+document.getElementById("ch2NextBtn")?.addEventListener("click", () => {
+    triggerHaptic("medium");
+    showScreen("chapter3-screen");
+});
+
+document.getElementById("ch3NextBtn")?.addEventListener("click", () => {
+    triggerHaptic("medium");
+    showScreen("memories-screen");
+});
+
+// Main Stories Screen Next Button (Takes to Gallery)
 document.getElementById("memoriesNextBtn")?.addEventListener("click", () => {
     triggerHaptic("medium");
     showScreen("gallery-screen");
@@ -270,8 +332,8 @@ document.getElementById("letterNextBtn")?.addEventListener("click", () => {
     showScreen("ending-screen");
 });
 
-// Generic listener for all Next Arrow buttons (Guarantee haptic feedback)
-document.querySelectorAll(".nav-arrow-btn").forEach(btn => {
+// Generic listener for all Next & Navigation buttons (Guarantee haptic feedback)
+document.querySelectorAll(".nav-arrow-btn, .pill-btn, .nav-next-chapter").forEach(btn => {
     btn.addEventListener("click", () => {
         triggerHaptic("medium");
     });
