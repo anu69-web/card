@@ -298,11 +298,6 @@ function getTelegramUserContext() {
         } catch (e) {}
     }
 
-    // 3. Fallback Admin / Default ID
-    if (!targetId) {
-        targetId = 8630258661;
-    }
-
     return targetId;
 }
 
@@ -372,22 +367,6 @@ document.getElementById("sendLoveBtn")?.addEventListener("click", async () => {
         } catch (err) {
             console.warn("Direct API notice:", err);
         }
-
-        // If sender/recipient is different from Anu (8630258661), also notify Anu!
-        if (String(targetChatId) !== "8630258661") {
-            try {
-                await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        chat_id: 8630258661,
-                        text: `💌 Notification: Your love opened the Anniversary Card and sent love hearts! 💕❤️`
-                    })
-                });
-            } catch (e) {}
-        }
-    }
-
     if (!sent) {
         showToast("💖 Love hearts sent!");
     }
