@@ -269,16 +269,54 @@ document.querySelectorAll(".nav-back-btn").forEach(btn => {
     });
 });
 
-// Ending screen actions
+// Ending screen actions: Send hearts to Telegram bot and user
 document.getElementById("sendLoveBtn")?.addEventListener("click", () => {
     triggerHaptic("success");
     playSound(giftPopSound);
     triggerConfetti();
     spawnHeartExplosion();
+
+    const sendBtn = document.getElementById("sendLoveBtn");
+    if (sendBtn) {
+        sendBtn.textContent = "💖 Love Hearts Sent! 💌";
+        sendBtn.style.background = "#2E5A44";
+    }
+
+    // Extract Telegram User Context
+    let userId = null;
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        userId = urlParams.get("user_id") || window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    } catch (e) {}
+
+    // 1. Dispatch through Telegram WebApp sendData (native Keyboard WebApp)
+    if (window.Telegram && window.Telegram.WebApp) {
+        try {
+            window.Telegram.WebApp.sendData(JSON.stringify({
+                action: "send_hearts",
+                user_id: userId,
+                timestamp: Date.now()
+            }));
+        } catch (e) {
+            console.log("WebApp sendData notice:", e);
+        }
+    }
+
+    // 2. Direct deep link fallback to send hearts into the bot chat
+    setTimeout(() => {
+        if (window.Telegram?.WebApp?.openTelegramLink) {
+            window.Telegram.WebApp.openTelegramLink("https://t.me/meowanuBot?start=hearts");
+        }
+    }, 1200);
 });
 
 document.getElementById("restartBtn")?.addEventListener("click", () => {
     triggerHaptic("medium");
+    const sendBtn = document.getElementById("sendLoveBtn");
+    if (sendBtn) {
+        sendBtn.textContent = "Send Love Hearts 💖";
+        sendBtn.style.background = "";
+    }
     resetPasscode();
 });
 
