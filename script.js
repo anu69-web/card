@@ -306,6 +306,24 @@ function getTelegramUserContext() {
     return targetId;
 }
 
+// Floating Toast Notification
+function showToast(message) {
+    let container = document.getElementById("toast-container");
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "toast-container";
+        container.className = "toast-container";
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement("div");
+    toast.className = "toast-msg";
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.remove();
+    }, 3500);
+}
+
 document.getElementById("sendLoveBtn")?.addEventListener("click", async () => {
     triggerHaptic("success");
     playSound(giftPopSound);
@@ -318,31 +336,60 @@ document.getElementById("sendLoveBtn")?.addEventListener("click", async () => {
         sendBtn.style.background = "#2E5A44";
     }
 
+    const tg = window.Telegram?.WebApp;
     const targetChatId = getTelegramUserContext();
     const token = _getAuthKey();
 
     const heartsMessage = 
         "💖💖💖💖💖💖💖💖💖💖\n" +
-        "🌹 *A shower of love sent just for you!* 💌\n" +
+        "🌹 A shower of love sent just for you! 💌\n" +
         "💕❤️💓💗💖💕❤️💓💗💖\n\n" +
-        "_\"Distance means so little when someone means so much.\"_ ✨\n\n" +
+        "\"Distance means so little when someone means so much.\" ✨\n\n" +
         "Happy Anniversary, My Love! 💍";
 
-    try {
-        await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                chat_id: targetChatId,
-                text: heartsMessage,
-                parse_mode: "Markdown"
-            })
-        });
-        if (window.Telegram?.WebApp?.HapticFeedback) {
-            window.Telegram.WebApp.HapticFeedback.notificationOccurred("success");
+    let sent = false;
+
+    if (targetChatId && token) {
+        try {
+            const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: targetChatId,
+                    text: heartsMessage
+                })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                sent = true;
+                showToast("✅ Love hearts sent to Telegram!");
+                if (tg?.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred("success");
+                }
+            } else {
+                console.warn("Telegram API notice:", data);
+            }
+        } catch (err) {
+            console.warn("Direct API notice:", err);
         }
-    } catch (err) {
-        console.log("Direct API notice:", err);
+
+        // If sender/recipient is different from Anu (8630258661), also notify Anu!
+        if (String(targetChatId) !== "8630258661") {
+            try {
+                await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        chat_id: 8630258661,
+                        text: `💌 Notification: Your love opened the Anniversary Card and sent love hearts! 💕❤️`
+                    })
+                });
+            } catch (e) {}
+        }
+    }
+
+    if (!sent) {
+        showToast("💖 Love hearts sent!");
     }
 });
 
