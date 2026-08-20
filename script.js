@@ -35,16 +35,26 @@ const miniEqualizer = document.getElementById("miniEqualizer");
 const globalMusicBar = document.getElementById("global-music-bar");
 
 // ------------------------------------------
-// Haptic & Sound Effects (Resilient)
+// Haptic & Sound Effects (Tactile & Resilient)
 // ------------------------------------------
-function triggerHaptic(type = "light") {
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+function triggerHaptic(type = "medium") {
+    const tg = window.Telegram?.WebApp;
+    if (tg?.HapticFeedback) {
         try {
-            if (type === "success") window.Telegram.WebApp.HapticFeedback.notificationOccurred("success");
-            else if (type === "error") window.Telegram.WebApp.HapticFeedback.notificationOccurred("error");
-            else window.Telegram.WebApp.HapticFeedback.impactOccurred(type);
+            if (type === "success") tg.HapticFeedback.notificationOccurred("success");
+            else if (type === "error") tg.HapticFeedback.notificationOccurred("error");
+            else if (type === "warning") tg.HapticFeedback.notificationOccurred("warning");
+            else tg.HapticFeedback.impactOccurred(type);
         } catch (e) {}
     }
+    // Mobile vibration fallback for browser/webview compatibility
+    try {
+        if (navigator.vibrate) {
+            if (type === "success") navigator.vibrate([20, 30, 40]);
+            else if (type === "error") navigator.vibrate([40, 40, 40]);
+            else navigator.vibrate(15);
+        }
+    } catch (e) {}
 }
 
 function playSound(audioEl) {
@@ -225,32 +235,32 @@ if (openGiftBtn) {
 }
 
 document.getElementById("startJourneyBtn")?.addEventListener("click", () => {
-    triggerHaptic("light");
+    triggerHaptic("medium");
     showScreen("calendar-screen");
 });
 
 document.getElementById("calendarNextBtn")?.addEventListener("click", () => {
-    triggerHaptic("light");
+    triggerHaptic("medium");
     showScreen("map-screen");
 });
 
 document.getElementById("mapNextBtn")?.addEventListener("click", () => {
-    triggerHaptic("light");
+    triggerHaptic("medium");
     showScreen("firsts-screen");
 });
 
 document.getElementById("firstsNextBtn")?.addEventListener("click", () => {
-    triggerHaptic("light");
+    triggerHaptic("medium");
     showScreen("memories-screen");
 });
 
 document.getElementById("memoriesNextBtn")?.addEventListener("click", () => {
-    triggerHaptic("light");
+    triggerHaptic("medium");
     showScreen("gallery-screen");
 });
 
 document.getElementById("galleryNextBtn")?.addEventListener("click", () => {
-    triggerHaptic("light");
+    triggerHaptic("medium");
     showScreen("letter-screen");
 });
 
@@ -258,6 +268,13 @@ document.getElementById("letterNextBtn")?.addEventListener("click", () => {
     triggerHaptic("success");
     triggerConfetti();
     showScreen("ending-screen");
+});
+
+// Generic listener for all Next Arrow buttons (Guarantee haptic feedback)
+document.querySelectorAll(".nav-arrow-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        triggerHaptic("medium");
+    });
 });
 
 // Dynamic Back Buttons Listener
