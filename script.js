@@ -35,56 +35,33 @@ const miniEqualizer = document.getElementById("miniEqualizer");
 const globalMusicBar = document.getElementById("global-music-bar");
 
 // ------------------------------------------
-// Haptic & Sound Effects (Instant & Multi-Mode)
+// Haptic & Sound Effects (Guaranteed Mobile Vibrations)
 // ------------------------------------------
-function triggerHaptic(type = "medium") {
+function triggerHaptic(type = "success") {
     const tg = window.Telegram?.WebApp;
     if (tg?.HapticFeedback) {
         try {
-            if (type === "success") {
-                tg.HapticFeedback.notificationOccurred("success");
-            } else if (type === "error") {
+            if (type === "error") {
                 tg.HapticFeedback.notificationOccurred("error");
             } else if (type === "warning") {
                 tg.HapticFeedback.notificationOccurred("warning");
-            } else if (type === "light") {
-                tg.HapticFeedback.impactOccurred("light");
-                tg.HapticFeedback.selectionChanged?.();
-            } else if (type === "heavy") {
-                tg.HapticFeedback.impactOccurred("heavy");
             } else {
-                // "medium" or default impact
-                tg.HapticFeedback.impactOccurred("medium");
+                // Guaranteed hardware vibration on iOS & Android Telegram
+                tg.HapticFeedback.notificationOccurred("success");
+                tg.HapticFeedback.impactOccurred?.("heavy");
                 tg.HapticFeedback.selectionChanged?.();
             }
         } catch (e) {}
     }
 
-    // Hardware Vibration API fallback for mobile webviews & Chrome/Safari
+    // Hardware Vibration API fallback
     try {
         if (navigator.vibrate) {
-            if (type === "success") navigator.vibrate([30, 40, 35]);
-            else if (type === "error") navigator.vibrate([50, 40, 50]);
-            else navigator.vibrate(30);
+            if (type === "error") navigator.vibrate([50, 40, 50]);
+            else navigator.vibrate([35, 35]);
         }
     } catch (e) {}
 }
-
-// Global instant tactile touch feedback on finger press
-["pointerdown", "touchstart"].forEach(evt => {
-    document.addEventListener(evt, (e) => {
-        const btn = e.target.closest("button, .nav-arrow-btn, .nav-back-btn, .key-btn, .story-card, .pill-btn, .box, .music-btn");
-        if (btn) {
-            if (btn.classList.contains("danger") || btn.id === "tryAgainBtn") {
-                triggerHaptic("error");
-            } else if (btn.id === "sendLoveBtn" || btn.id === "letterNextBtn") {
-                triggerHaptic("success");
-            } else {
-                triggerHaptic("medium");
-            }
-        }
-    }, { passive: true });
-});
 
 function playSound(audioEl) {
     if (audioEl) {
@@ -124,7 +101,7 @@ function setMusicState(playing) {
 }
 
 function toggleMusic() {
-    triggerHaptic("light");
+    triggerHaptic("success");
     setMusicState(!isMusicPlaying);
 }
 
@@ -173,35 +150,23 @@ function updateBoxes() {
 }
 
 function addDigit(digit) {
-    if (enteredCode.length >= 4) return;
-    triggerHaptic("light");
-    playSound(keypadSound);
-    enteredCode += digit;
-    updateBoxes();
-
-    if (enteredCode.length === 4) {
-        setTimeout(checkPassword, 280);
+    if (enteredCode.length < 4) {
+        enteredCode += digit;
+        triggerHaptic("success");
+        playSound(keypadSound);
+        updateBoxes();
+        if (enteredCode.length === 4) {
+            setTimeout(checkPasscode, 250);
+        }
     }
 }
 
 function removeDigit() {
-    if (enteredCode.length === 0) return;
-    triggerHaptic("rigid");
-    playSound(keypadSound);
-    enteredCode = enteredCode.slice(0, -1);
-    updateBoxes();
-}
-
-function checkPassword() {
-    if (enteredCode === PASSWORD) {
+    if (enteredCode.length > 0) {
+        enteredCode = enteredCode.slice(0, -1);
         triggerHaptic("success");
-        triggerConfetti();
-        // Start romantic bg music
-        setMusicState(true);
-        showScreen("gift-screen");
-    } else {
-        triggerHaptic("error");
-        showScreen("error-screen");
+        playSound(keypadSound);
+        updateBoxes();
     }
 }
 
@@ -211,27 +176,48 @@ function resetPasscode() {
     showScreen("passcode-screen");
 }
 
-// ------------------------------------------
-// Keypad & Hardware Keyboard Listeners
-// ------------------------------------------
-keyButtons.forEach(button => {
-    button.addEventListener("click", () => {
-        const val = button.getAttribute("data-key") || button.textContent.trim();
-        if (val === "backspace" || val === "⌫") removeDigit();
-        else if (val === "enter" || val === "UNLOCK") {
-            triggerHaptic("medium");
-            playSound(keypadSound);
-            if (enteredCode.length === 4) checkPassword();
-        } else if (/^[0-9]$/.test(val)) {
-            addDigit(val);
+function checkPasscode() {
+    if (enteredCode === PASSWORD) {
+        triggerHaptic("success");
+        playSound(giftPopSound);
+        triggerConfetti();
+        showScreen("gift-screen");
+    } else {
+        triggerHaptic("error");
+        showScreen("error-screen");
+    }
+}
+
+// Keypad Event Listeners
+keyButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const key = btn.getAttribute("data-key");
+        if (key === "backspace") {
+            removeDigit();
+        } else if (key === "enter") {
+            if (enteredCode.length === 4) {
+                checkPasscode();
+            } else {
+                triggerHaptic("error");
+            }
+        } else {
+            addDigit(key);
         }
     });
 });
 
+// Keyboard Physical Typing Support
 document.addEventListener("keydown", (e) => {
-    if (e.key >= "0" && e.key <= "9") addDigit(e.key);
-    else if (e.key === "Backspace") removeDigit();
-    else if (e.key === "Enter" && enteredCode.length === 4) checkPassword();
+    const activeScreen = document.querySelector("section.active-screen");
+    if (!activeScreen || activeScreen.id !== "passcode-screen") return;
+
+    if (e.key >= "0" && e.key <= "9") {
+        addDigit(e.key);
+    } else if (e.key === "Backspace") {
+        removeDigit();
+    } else if (e.key === "Enter") {
+        if (enteredCode.length === 4) checkPasscode();
+    }
 });
 
 // ------------------------------------------
@@ -239,7 +225,7 @@ document.addEventListener("keydown", (e) => {
 // ------------------------------------------
 if (tryAgainBtn) {
     tryAgainBtn.addEventListener("click", () => {
-        triggerHaptic("light");
+        triggerHaptic("success");
         resetPasscode();
     });
 }
@@ -257,72 +243,56 @@ if (giftBox) {
 
 if (openGiftBtn) {
     openGiftBtn.addEventListener("click", () => {
-        triggerHaptic("medium");
+        triggerHaptic("success");
         setMusicState(true);
         showScreen("welcome-screen");
     });
 }
 
 document.getElementById("startJourneyBtn")?.addEventListener("click", () => {
-    triggerHaptic("medium");
+    triggerHaptic("success");
     showScreen("calendar-screen");
 });
 
 document.getElementById("calendarNextBtn")?.addEventListener("click", () => {
-    triggerHaptic("medium");
+    triggerHaptic("success");
     showScreen("map-screen");
 });
 
 document.getElementById("mapNextBtn")?.addEventListener("click", () => {
-    triggerHaptic("medium");
+    triggerHaptic("success");
     showScreen("firsts-screen");
 });
 
 document.getElementById("firstsNextBtn")?.addEventListener("click", () => {
-    triggerHaptic("medium");
+    triggerHaptic("success");
     showScreen("memories-screen");
-});
-
-// Interactive Chapter Cards Navigation
-document.getElementById("storyCard1")?.addEventListener("click", () => {
-    triggerHaptic("medium");
-    showScreen("chapter1-screen");
-});
-
-document.getElementById("storyCard2")?.addEventListener("click", () => {
-    triggerHaptic("medium");
-    showScreen("chapter2-screen");
-});
-
-document.getElementById("storyCard3")?.addEventListener("click", () => {
-    triggerHaptic("medium");
-    showScreen("chapter3-screen");
 });
 
 // Dedicated Chapter Screen Next Buttons
 document.getElementById("ch1NextBtn")?.addEventListener("click", () => {
-    triggerHaptic("medium");
+    triggerHaptic("success");
     showScreen("chapter2-screen");
 });
 
 document.getElementById("ch2NextBtn")?.addEventListener("click", () => {
-    triggerHaptic("medium");
+    triggerHaptic("success");
     showScreen("chapter3-screen");
 });
 
 document.getElementById("ch3NextBtn")?.addEventListener("click", () => {
-    triggerHaptic("medium");
+    triggerHaptic("success");
     showScreen("memories-screen");
 });
 
 // Main Stories Screen Next Button (Takes to Gallery)
 document.getElementById("memoriesNextBtn")?.addEventListener("click", () => {
-    triggerHaptic("medium");
+    triggerHaptic("success");
     showScreen("gallery-screen");
 });
 
 document.getElementById("galleryNextBtn")?.addEventListener("click", () => {
-    triggerHaptic("medium");
+    triggerHaptic("success");
     showScreen("letter-screen");
 });
 
@@ -332,20 +302,33 @@ document.getElementById("letterNextBtn")?.addEventListener("click", () => {
     showScreen("ending-screen");
 });
 
-// Generic listener for all Next & Navigation buttons (Guarantee haptic feedback)
-document.querySelectorAll(".nav-arrow-btn, .pill-btn, .nav-next-chapter").forEach(btn => {
-    btn.addEventListener("click", () => {
-        triggerHaptic("medium");
-    });
-});
+// Universal Document-Level Click Handler for Instant Mobile Responsiveness
+document.addEventListener("click", (e) => {
+    // 1. Chapter Cards Tap (Mobile touch proof)
+    const chapterCard = e.target.closest(".clickable-chapter, [data-chapter]");
+    if (chapterCard) {
+        const chNum = chapterCard.getAttribute("data-chapter") || (chapterCard.id === "storyCard1" ? "1" : chapterCard.id === "storyCard2" ? "2" : "3");
+        triggerHaptic("success");
+        showScreen(`chapter${chNum}-screen`);
+        return;
+    }
 
-// Dynamic Back Buttons Listener
-document.querySelectorAll(".nav-back-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-        triggerHaptic("light");
-        const targetScreen = btn.getAttribute("data-target");
-        if (targetScreen) showScreen(targetScreen);
-    });
+    // 2. Dynamic Back Buttons
+    const backBtn = e.target.closest(".nav-back-btn, [data-target]");
+    if (backBtn) {
+        const targetScreen = backBtn.getAttribute("data-target");
+        if (targetScreen) {
+            triggerHaptic("success");
+            showScreen(targetScreen);
+        }
+        return;
+    }
+
+    // 3. Any interactive button haptic feedback
+    const genericBtn = e.target.closest(".nav-arrow-btn, .pill-btn, .nav-next-chapter");
+    if (genericBtn) {
+        triggerHaptic("success");
+    }
 });
 
 // Ending screen actions: Extract user context & push hearts directly via Telegram Bot API
