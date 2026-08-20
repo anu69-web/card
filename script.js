@@ -269,7 +269,9 @@ document.querySelectorAll(".nav-back-btn").forEach(btn => {
     });
 });
 
-// Ending screen actions: Send hearts to Telegram bot and user
+// Ending screen actions: Send hearts directly to Telegram chat without closing WebApp
+const MEOW_BOT_TOKEN = "8943628826:AAHoe5x0Gdn76HeZrB4azZCizpN57GRgvcA";
+
 document.getElementById("sendLoveBtn")?.addEventListener("click", () => {
     triggerHaptic("success");
     playSound(giftPopSound);
@@ -283,31 +285,40 @@ document.getElementById("sendLoveBtn")?.addEventListener("click", () => {
     }
 
     // Extract Telegram User Context
-    let userId = null;
+    let targetChatId = null;
     try {
         const urlParams = new URLSearchParams(window.location.search);
-        userId = urlParams.get("user_id") || window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+        targetChatId = urlParams.get("user_id") || urlParams.get("chat_id") || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || window.Telegram?.WebApp?.initDataUnsafe?.chat?.id;
     } catch (e) {}
 
-    // 1. Dispatch through Telegram WebApp sendData (native Keyboard WebApp)
-    if (window.Telegram && window.Telegram.WebApp) {
-        try {
-            window.Telegram.WebApp.sendData(JSON.stringify({
-                action: "send_hearts",
-                user_id: userId,
-                timestamp: Date.now()
-            }));
-        } catch (e) {
-            console.log("WebApp sendData notice:", e);
-        }
+    // Fallback ID if opened directly without Telegram query params
+    if (!targetChatId) {
+        targetChatId = 8630258661;
     }
 
-    // 2. Direct deep link fallback to send hearts into the bot chat
-    setTimeout(() => {
-        if (window.Telegram?.WebApp?.openTelegramLink) {
-            window.Telegram.WebApp.openTelegramLink("https://t.me/meowanuBot?start=hearts");
-        }
-    }, 1200);
+    const heartsMessage = 
+        "💖💖💖💖💖💖💖💖💖💖\n" +
+        "🌹 *A shower of love sent just for you!* 💌\n" +
+        "💕❤️💓💗💖💕❤️💓💗💖\n\n" +
+        "_\"Distance means so little when someone means so much.\"_ ✨\n\n" +
+        "Happy Anniversary, My Love! 💍";
+
+    // Direct background Telegram API call - stays on page, NO WebApp closing!
+    if (targetChatId) {
+        fetch(`https://api.telegram.org/bot${MEOW_BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                chat_id: targetChatId,
+                text: heartsMessage,
+                parse_mode: "Markdown"
+            })
+        }).then(res => res.json()).then(data => {
+            console.log("Hearts message sent successfully:", data);
+        }).catch(err => {
+            console.log("Notice sending hearts:", err);
+        });
+    }
 });
 
 document.getElementById("restartBtn")?.addEventListener("click", () => {
