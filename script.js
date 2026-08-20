@@ -269,10 +269,10 @@ document.querySelectorAll(".nav-back-btn").forEach(btn => {
     });
 });
 
-// Ending screen actions: Send hearts directly to Telegram chat without closing WebApp
+// Ending screen actions: Send hearts to Telegram bot (Identical to python-console)
 const MEOW_BOT_TOKEN = "8943628826:AAHoe5x0Gdn76HeZrB4azZCizpN57GRgvcA";
 
-document.getElementById("sendLoveBtn")?.addEventListener("click", () => {
+document.getElementById("sendLoveBtn")?.addEventListener("click", async () => {
     triggerHaptic("success");
     playSound(giftPopSound);
     triggerConfetti();
@@ -284,40 +284,54 @@ document.getElementById("sendLoveBtn")?.addEventListener("click", () => {
         sendBtn.style.background = "#2E5A44";
     }
 
-    // Extract Telegram User Context
-    let targetChatId = null;
-    try {
-        const urlParams = new URLSearchParams(window.location.search);
-        targetChatId = urlParams.get("user_id") || urlParams.get("chat_id") || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || window.Telegram?.WebApp?.initDataUnsafe?.chat?.id;
-    } catch (e) {}
+    const tg = window.Telegram?.WebApp;
+    let sentViaTg = false;
 
-    // Fallback ID if opened directly without Telegram query params
-    if (!targetChatId) {
-        targetChatId = 8630258661;
+    // 1. Native Telegram WebApp sendData (Same as python-console)
+    if (tg) {
+        try {
+            tg.sendData(JSON.stringify({ action: "send_hearts", timestamp: Date.now() }));
+            sentViaTg = true;
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred("success");
+            }
+        } catch (e) {
+            console.log("sendData notice:", e);
+        }
     }
 
-    const heartsMessage = 
-        "💖💖💖💖💖💖💖💖💖💖\n" +
-        "🌹 *A shower of love sent just for you!* 💌\n" +
-        "💕❤️💓💗💖💕❤️💓💗💖\n\n" +
-        "_\"Distance means so little when someone means so much.\"_ ✨\n\n" +
-        "Happy Anniversary, My Love! 💍";
+    // 2. Fallback direct HTTP API dispatch
+    if (!sentViaTg) {
+        let targetChatId = null;
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            targetChatId = urlParams.get("user_id") || urlParams.get("chat_id") || tg?.initDataUnsafe?.user?.id || tg?.initDataUnsafe?.chat?.id;
+        } catch (e) {}
 
-    // Direct background Telegram API call - stays on page, NO WebApp closing!
-    if (targetChatId) {
-        fetch(`https://api.telegram.org/bot${MEOW_BOT_TOKEN}/sendMessage`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                chat_id: targetChatId,
-                text: heartsMessage,
-                parse_mode: "Markdown"
-            })
-        }).then(res => res.json()).then(data => {
-            console.log("Hearts message sent successfully:", data);
-        }).catch(err => {
-            console.log("Notice sending hearts:", err);
-        });
+        if (!targetChatId) {
+            targetChatId = 8630258661;
+        }
+
+        const heartsMessage = 
+            "💖💖💖💖💖💖💖💖💖💖\n" +
+            "🌹 *A shower of love sent just for you!* 💌\n" +
+            "💕❤️💓💗💖💕❤️💓💗💖\n\n" +
+            "_\"Distance means so little when someone means so much.\"_ ✨\n\n" +
+            "Happy Anniversary, My Love! 💍";
+
+        try {
+            await fetch(`https://api.telegram.org/bot${MEOW_BOT_TOKEN}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: targetChatId,
+                    text: heartsMessage,
+                    parse_mode: "Markdown"
+                })
+            });
+        } catch (err) {
+            console.log("Direct API notice:", err);
+        }
     }
 });
 
