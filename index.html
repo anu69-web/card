@@ -2,320 +2,418 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Happy Anniversary ❤️</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Happy Anniversary ❤️ | عشق من</title>
+    <meta name="description" content="A special interactive anniversary surprise card made with love across the miles.">
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Google Fonts with Display Swap & Fallbacks -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Confetti Library (with built-in offline fallback in script.js) -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
-    <!-- Floating Background Hearts -->
-    <div id="heart-bg"></div>
+    <!-- Floating Background Hearts & Glow -->
+    <div id="heart-bg" aria-hidden="true"></div>
 
-    <!-- =========================
-         1. PASSCODE SCREEN
-    ========================== -->
-    <section id="passcode-screen">
-        <div class="vintage-frame keypad-card">
-            <!-- Left Side: Separate Side-by-Side Avatars -->
-            <div class="heart-avatar-container">
-                <div class="duo-avatar-wrapper">
-                    <div class="avatar-circle left-avatar">
-                        <img src="assets/images/her-avatar.jpg" onerror="this.src='https://i.pinimg.com/originals/33/82/72/33827232590a7f9386f24a03c81b2b5f.png?w=300'" alt="Her">
+    <!-- Floating Persistent Music Control Widget -->
+    <div id="global-music-bar" class="global-music-bar hidden">
+        <button id="floatingMusicToggle" class="floating-music-btn" title="Toggle Music">
+            <span class="music-icon">🎵</span>
+            <span class="music-status">Our Song</span>
+            <div class="mini-equalizer" id="miniEqualizer">
+                <span></span><span></span><span></span>
+            </div>
+        </button>
+    </div>
+
+    <!-- App Container -->
+    <main class="card-viewport">
+
+        <!-- =========================================
+             1. PASSCODE SCREEN
+        ========================================= -->
+        <section id="passcode-screen" class="active-screen">
+            <div class="vintage-frame keypad-card">
+                <!-- Left Side: Duo Heart Avatars -->
+                <div class="heart-avatar-container">
+                    <div class="duo-avatar-wrapper">
+                        <div class="avatar-circle left-avatar" title="Her">
+                            <img src="assets/images/her-avatar.jpg" onerror="this.onerror=null; this.src='assets/images/her-avatar.jpg';" alt="Her">
+                        </div>
+                        <div class="avatar-heart-connector">
+                            <span class="pulse-heart">❤️</span>
+                        </div>
+                        <div class="avatar-circle right-avatar" title="Him">
+                            <img src="assets/images/his-avatar.jpg" onerror="this.onerror=null; this.src='assets/images/his-avatar.jpg';" alt="Him">
+                        </div>
                     </div>
-                    <div class="avatar-heart-connector">❤️</div>
-                    <div class="avatar-circle right-avatar">
-                        <img src="assets/images/his-avatar.jpg" onerror="this.src='https://drive.google.com/file/d/1Tc22yA28XUkqdH-FEL_d_YaAq_DwrxzK/view?usp=sharing?w=300'" alt="Him">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Side: Keypad & Input -->
-            <div class="keypad-panel">
-                <p class="subtitle-script">Enter the date our story started</p>
-                
-                <div class="passcode-slots">
-                    <div class="box"></div>
-                    <div class="box"></div>
-                    <div class="box"></div>
-                    <div class="box"></div>
-                </div>
-
-                <div class="keypad">
-                    <button class="key-btn">1</button>
-                    <button class="key-btn">2</button>
-                    <button class="key-btn">3</button>
-                    <button class="key-btn">4</button>
-                    <button class="key-btn">5</button>
-                    <button class="key-btn">6</button>
-                    <button class="key-btn">7</button>
-                    <button class="key-btn">8</button>
-                    <button class="key-btn">9</button>
-                    <button class="key-btn icon-btn">⌫</button>
-                    <button class="key-btn">0</button>
-                    <button class="key-btn icon-btn" id="unlock-btn">UNLOCK</button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- =========================
-         2. ERROR SCREEN
-    ========================== -->
-    <section id="error-screen" class="hidden">
-        <div class="error-modal">
-            <h2 class="error-title">WRONG PASSCODE</h2>
-            <div class="meme-container">
-                <img src="assets/images/wrong-cat.jpeg" onerror="this.src='https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif'" alt="Try Again Kitty">
-            </div>
-            <button id="tryAgainBtn" class="pill-btn danger">TRY AGAIN</button>
-        </div>
-    </section>
-
-    <!-- =========================
-         3. GIFT SCREEN
-    ========================== -->
-    <section id="gift-screen" class="hidden">
-        <div class="lace-banner">
-            <h2 class="banner-title">Miles apart, but closer at heart</h2>
-            <div class="gift-box-wrapper" id="giftBox">
-                <div class="gift-animated">🎁</div>
-                <div class="click-tag">click to open</div>
-            </div>
-            <button id="openGiftBtn" class="pill-btn surprise-btn">OPEN SURPRISE ❤️</button>
-        </div>
-    </section>
-
-    <!-- =========================
-         4. GREETING CARD
-    ========================== -->
-    <section id="welcome-screen" class="hidden">
-        <div class="gingham-card">
-            <div class="scallop-inner">
-                <h1 class="script-title">Happy 1st Anniversary</h1>
-                <p class="tagline">From the very first day we met, to every storm we outlasted.</p>
-                <div class="divider">✦ ✦ ✦</div>
-                <button id="startJourneyBtn" class="nav-arrow-btn">➔</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- =========================
-         5. CALENDAR (THE START)
-    ========================== -->
-    <section id="calendar-screen" class="hidden">
-        <div class="split-scrapbook-card">
-            <div class="photo-side">
-                <div class="duo-polaroid-row">
-                    <div class="mini-polaroid rot-left">
-                        <img src="assets/images/her-photo1.jpg" onerror="this.src='https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300'" alt="Her">
-                    </div>
-                    <div class="mini-polaroid rot-right">
-                        <img src="assets/images/his-photo1.jpg" onerror="this.src='https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300'" alt="Him">
+                    <div class="avatar-names">
+                        <span>Her</span> • <span>Him</span>
                     </div>
                 </div>
-                <div class="stamp-badge">
-                    <span>THE DAY IT ALL BEGAN</span>
-                    <div class="mini-cal-grid">
-                        <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
-                        <div></div><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div>
-                        <div>7</div><div>8</div><div>9</div><div>10</div><div>11</div><div>12</div><div>13</div>
-                        <div>14</div><div>15</div><div>16</div><div>17</div><div>18</div><div>19</div><div>20</div>
-                        <div>21</div><div>22</div><div class="cal-highlight">23</div><div>24</div><div>25</div><div>26</div><div>27</div>
-                        <div>28</div><div>29</div><div>30</div>
-                    </div>
-                </div>
-            </div>
-            <div class="text-side">
-                <h2 class="title-official">Where our chapter<br><span>began</span></h2>
-                <div class="date-badge">23 • 09 • 2025 ❤️</div>
-                <p class="story-snippet">One full year since we became us. Distance never stood a chance.</p>
-                <button id="calendarNextBtn" class="nav-arrow-btn right-align">➔</button>
-            </div>
-        </div>
-    </section>
 
-    <!-- =========================
-         6. LONG DISTANCE MAP SCREEN
-    ========================== -->
-    <section id="map-screen" class="hidden">
-        <div class="scrapbook-board map-board">
-            <h1 class="cursive-header">Distance Means So Little 💕</h1>
-            <p class="vintage-quote">"3,820 KM apart, but closer in heart than ever."</p>
-            
-            <div class="distance-badge-container">
-                <span class="location-pill">📍 <strong>Aran, Iran</strong></span>
-                <div class="distance-pill">3,820 KM OF LOVE</div>
-                <span class="location-pill">📍 <strong>Kolkata, India</strong></span>
-            </div>
-
-            <div class="map-photo-frame">
-                <img src="assets/images/ldr-map.jpg" onerror="this.src='https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800'" alt="Aran to Kolkata Map">
-            </div>
-            
-            <button id="mapNextBtn" class="nav-arrow-btn">➔</button>
-        </div>
-    </section>
-
-    <!-- =========================
-         7. OUR FIRSTS & DIGITAL SCREENSHOTS
-    ========================== -->
-    <section id="firsts-screen" class="hidden">
-        <div class="scrapbook-board">
-            <h1 class="cursive-header">Our Digital Firsts 📱</h1>
-            <div class="heart-frames-grid">
-                <div class="firsts-card">
-                    <div class="phone-mockup">
-                        <img src="assets/images/chat-first-text.jpg" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500'" alt="First Chat">
-                    </div>
-                    <span>First Text Message</span>
-                </div>
-                <div class="firsts-card">
-                    <div class="phone-mockup">
-                        <img src="assets/images/facetime-first.jpg" onerror="this.src='https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=500'" alt="Late Night Call">
-                    </div>
-                    <span>Our First Late Night Call</span>
-                </div>
-                <div class="firsts-card">
-                    <div class="phone-mockup">
-                        <img src="assets/images/chat-funny.jpg" onerror="this.src='https://images.unsplash.com/photo-1577563908411-5077b6dc7624?w=500'" alt="First Virtual Movie">
-                    </div>
-                    <span>First Virtual Movie Date</span>
-                </div>
-            </div>
-            <button id="firstsNextBtn" class="nav-arrow-btn">➔</button>
-        </div>
-    </section>
-
-    <!-- =========================
-         8. OUR MEMORIES & JOURNEY
-    ========================== -->
-    <section id="memories-screen" class="hidden">
-        <div class="scrapbook-board wide-board">
-            <h2 class="vintage-subtitle">Stories We Wrote Together 📖</h2>
-            
-            <div class="memory-cards-container">
-                <div class="story-card">
-                    <div class="story-badge">Chapter 1</div>
-                    <h3>The Sweet Beginning</h3>
-                    <div class="story-img-row">
-                        <img src="assets/images/story-1.jpg" onerror="this.src='https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400'" alt="Beginning">
-                    </div>
-                    <p>The butterflies, late-night voice notes, and falling head over heels across the screen.</p>
-                </div>
-
-                <div class="story-card highlight-card">
-                    <div class="story-badge">Chapter 2</div>
-                    <h3>The 6-Month Pause</h3>
-                    <div class="story-img-row">
-                        <img src="assets/images/story-break.jpg" onerror="this.src='https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400'" alt="Distance">
-                    </div>
-                    <p>Six months apart proved that no matter the silence or space, you were the only one my heart searched for.</p>
-                </div>
-
-                <div class="story-card">
-                    <div class="story-badge">Chapter 3</div>
-                    <h3>Finding Our Way Back</h3>
-                    <div class="story-img-row">
-                        <img src="assets/images/story-reunion.jpg" onerror="this.src='https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400'" alt="Back Together">
-                    </div>
-                    <p>Stronger, closer, and choosing each other forever. Here's to 1 year since day one.</p>
-                </div>
-            </div>
-
-            <button id="memoriesNextBtn" class="nav-arrow-btn">➔</button>
-        </div>
-    </section>
-
-    <!-- =========================
-         9. PHOTO & SCREENSHOT GARLAND
-    ========================== -->
-    <section id="gallery-screen" class="hidden">
-        <div class="garland-board">
-            <h2 class="vintage-subtitle">Snapshots & Screenshots</h2>
-            <div class="garland-string">
-                <div class="polaroid-pin rot-left">
-                    <div class="pin">📌</div>
-                    <img src="assets/images/her-snap.jpg" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500'" alt="Her Photo">
-                    <span class="pin-caption">The prettiest girl</span>
-                </div>
-                <div class="polaroid-pin rot-right">
-                    <div class="pin">📌</div>
-                    <img src="assets/images/chat-cute.jpg" onerror="this.src='https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=500'" alt="Chat Memory">
-                    <span class="pin-caption">My favorite notification</span>
-                </div>
-                <div class="polaroid-pin rot-left">
-                    <div class="pin">📌</div>
-                    <img src="assets/images/his-snap.jpg" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500'" alt="His Photo">
-                    <span class="pin-caption">Always missing you</span>
-                </div>
-            </div>
-            <button id="galleryNextBtn" class="nav-arrow-btn">➔</button>
-        </div>
-    </section>
-
-    <!-- =========================
-         10. RETRO LETTER & IPOD
-    ========================== -->
-    <section id="letter-screen" class="hidden">
-        <div class="letter-card-container">
-            <div class="letter-note">
-                <h3>To my favorite person across the miles...</h3>
-                <div class="scrolling-letter-body">
-                    <p>Happy 1st Anniversary, my love!</p>
-                    <p>Even though we spent six months apart, our story never truly stopped. It only proved that true love always finds its way back home.</p>
-                    <p>Thank you for sticking by me, answering my calls, and loving me across every single kilometer between us. I can't wait until distance is just a memory.</p>
-                    <p class="sign-off">Yours always & forever,<br>❤️</p>
-                </div>
-            </div>
-
-            <div class="ipod-widget">
-                <div class="ipod-screen">
-                    <img src="assets/images/our-song-cover.jpg" onerror="this.src='https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=300'" alt="Album Art">
-                    <div class="song-title">Our Distance Playlist 🎵</div>
+                <!-- Right Side: Keypad & Input -->
+                <div class="keypad-panel">
+                    <h2 class="subtitle-script">Enter the date our story started</h2>
+                    <p class="passcode-hint">Hint: DDMM (Day & Month)</p>
                     
-                    <!-- Retro Equalizer Animation -->
-                    <div class="equalizer" id="equalizer">
-                        <span class="bar"></span>
-                        <span class="bar"></span>
-                        <span class="bar"></span>
-                        <span class="bar"></span>
+                    <div class="passcode-slots" id="passcodeSlots">
+                        <div class="box"></div>
+                        <div class="box"></div>
+                        <div class="box"></div>
+                        <div class="box"></div>
+                    </div>
+
+                    <div class="keypad">
+                        <button class="key-btn" data-key="1">1</button>
+                        <button class="key-btn" data-key="2">2</button>
+                        <button class="key-btn" data-key="3">3</button>
+                        <button class="key-btn" data-key="4">4</button>
+                        <button class="key-btn" data-key="5">5</button>
+                        <button class="key-btn" data-key="6">6</button>
+                        <button class="key-btn" data-key="7">7</button>
+                        <button class="key-btn" data-key="8">8</button>
+                        <button class="key-btn" data-key="9">9</button>
+                        <button class="key-btn icon-btn" data-key="backspace" title="Delete">⌫</button>
+                        <button class="key-btn" data-key="0">0</button>
+                        <button class="key-btn icon-btn unlock-key" id="unlock-btn" data-key="enter">UNLOCK</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================================
+             2. ERROR SCREEN
+        ========================================= -->
+        <section id="error-screen" class="hidden-screen">
+            <div class="error-modal">
+                <div class="error-badge">WRONG PASSCODE 😿</div>
+                <div class="meme-container">
+                    <img src="assets/images/wrong-cat.jpeg" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'160\' height=\'140\' viewBox=\'0 0 160 140\'><rect width=\'100%\' height=\'100%\' fill=\'%23ffe4e6\' rx=\'16\'/><text x=\'50%\' y=\'45%\' font-size=\'40\' text-anchor=\'middle\'>😿</text><text x=\'50%\' y=\'75%\' font-size=\'14\' fill=\'%23b91c1c\' font-family=\'sans-serif\' text-anchor=\'middle\'>Think carefully!</text></svg>';" alt="Wrong Passcode Cat">
+                </div>
+                <p class="error-text">Think back to the day that changed everything for us...</p>
+                <button id="tryAgainBtn" class="pill-btn danger">TRY AGAIN ↺</button>
+            </div>
+        </section>
+
+        <!-- =========================================
+             3. GIFT SCREEN
+        ========================================= -->
+        <section id="gift-screen" class="hidden-screen">
+            <div class="lace-banner">
+                <div class="persian-tag">«همیشه و تا ابد در قلب من»</div>
+                <h2 class="banner-title">Miles apart, but closer at heart</h2>
+                <div class="gift-box-wrapper" id="giftBox" title="Tap to open your surprise!">
+                    <div class="gift-animated">🎁</div>
+                    <div class="sparkle-ring">✨ 💖 ✨</div>
+                    <div class="click-tag">Tap the gift to open!</div>
+                </div>
+                <button id="openGiftBtn" class="pill-btn surprise-btn">OPEN SURPRISE ❤️</button>
+            </div>
+        </section>
+
+        <!-- =========================================
+             4. GREETING CARD
+        ========================================= -->
+        <section id="welcome-screen" class="hidden-screen">
+            <div class="gingham-card">
+                <div class="scallop-inner">
+                    <div class="persian-tag">«عشق من» • My Love</div>
+                    <h1 class="script-title">Happy 1st Anniversary</h1>
+                    <p class="tagline">From the very first message we exchanged, to every storm we outlasted together.</p>
+                    <div class="divider">✦ ✦ ✦</div>
+                    <p class="sub-quote">"I knew from the start you were worth every single kilometer."</p>
+                    <div class="nav-row center-nav">
+                        <button id="startJourneyBtn" class="nav-arrow-btn" title="Begin Journey">➔</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================================
+             5. CALENDAR (THE START)
+        ========================================= -->
+        <section id="calendar-screen" class="hidden-screen">
+            <div class="split-scrapbook-card">
+                <div class="photo-side">
+                    <div class="calendar-preview-wrap">
+                        <img src="assets/images/calendar.jpg" onerror="this.style.display='none';" alt="Our Calendar" class="calendar-img-full">
+                    </div>
+                    <div class="stamp-badge">
+                        <span>THE DAY OUR STORY STARTED</span>
+                        <div class="mini-cal-grid">
+                            <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
+                            <div></div><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div>
+                            <div>7</div><div>8</div><div>9</div><div>10</div><div>11</div><div>12</div><div>13</div>
+                            <div>14</div><div>15</div><div>16</div><div>17</div><div>18</div><div>19</div><div>20</div>
+                            <div>21</div><div>22</div><div class="cal-highlight" title="Our Anniversary Date">23</div><div>24</div><div>25</div><div>26</div><div>27</div>
+                            <div>28</div><div>29</div><div>30</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-side">
+                    <h2 class="title-official">Where our chapter<br><span>began</span></h2>
+                    <div class="date-badge">23 • 09 • 2025 ❤️</div>
+                    <p class="story-snippet">One full year of love, late night talks, laughter, and unbreakable devotion. Distance never stood a chance.</p>
+                    <div class="nav-row">
+                        <button class="nav-back-btn" data-target="welcome-screen">← Back</button>
+                        <button id="calendarNextBtn" class="nav-arrow-btn" title="Next">➔</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================================
+             6. LONG DISTANCE MAP SCREEN
+        ========================================= -->
+        <section id="map-screen" class="hidden-screen">
+            <div class="scrapbook-board map-board">
+                <h1 class="cursive-header">Distance Means So Little 💕</h1>
+                <p class="vintage-quote">"3,820 KM apart, but closer in heart than ever."</p>
+                
+                <div class="distance-badge-container">
+                    <span class="location-pill">🇮🇷 <strong>Aran, Iran</strong></span>
+                    <div class="distance-pill">✈️ 3,820 KM OF LOVE ✈️</div>
+                    <span class="location-pill">🇮🇳 <strong>Kolkata, India</strong></span>
+                </div>
+
+                <div class="map-photo-frame">
+                    <img src="assets/images/ldr-map.jpg" onerror="this.onerror=null; this.src='assets/images/ldr-map.jpg';" alt="Aran to Kolkata Map">
+                </div>
+                
+                <div class="nav-row">
+                    <button class="nav-back-btn" data-target="calendar-screen">← Back</button>
+                    <button id="mapNextBtn" class="nav-arrow-btn" title="Next">➔</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================================
+             7. OUR FIRSTS & DIGITAL MEMORIES
+        ========================================= -->
+        <section id="firsts-screen" class="hidden-screen">
+            <div class="scrapbook-board">
+                <h1 class="cursive-header">Our Digital Firsts 📱</h1>
+                <p class="vintage-quote">The tiny screen moments that built our forever.</p>
+                
+                <div class="heart-frames-grid">
+                    <div class="firsts-card">
+                        <div class="phone-mockup">
+                            <div class="phone-inner-card">
+                                <span class="card-icon">💬</span>
+                                <p class="card-mini-text">"Hey..."</p>
+                                <span class="card-date-tag">First Text</span>
+                            </div>
+                        </div>
+                        <span class="firsts-label">First Text Message</span>
+                    </div>
+
+                    <div class="firsts-card">
+                        <div class="phone-mockup">
+                            <div class="phone-inner-card call-theme">
+                                <span class="card-icon">📞</span>
+                                <p class="card-mini-text">04:22:15 AM</p>
+                                <span class="card-date-tag">Late Night Call</span>
+                            </div>
+                        </div>
+                        <span class="firsts-label">First Late Night Call</span>
+                    </div>
+
+                    <div class="firsts-card">
+                        <div class="phone-mockup">
+                            <div class="phone-inner-card movie-theme">
+                                <span class="card-icon">🎬</span>
+                                <p class="card-mini-text">Virtual Cinema</p>
+                                <span class="card-date-tag">Synced Date</span>
+                            </div>
+                        </div>
+                        <span class="firsts-label">First Movie Date</span>
                     </div>
                 </div>
 
-                <div class="ipod-wheel">
-                    <div class="ipod-center-btn" id="musicToggle">▶</div>
+                <div class="nav-row">
+                    <button class="nav-back-btn" data-target="map-screen">← Back</button>
+                    <button id="firstsNextBtn" class="nav-arrow-btn" title="Next">➔</button>
                 </div>
             </div>
-        </div>
-        <button id="letterNextBtn" class="nav-arrow-btn">➔</button>
-    </section>
+        </section>
 
-    <!-- =========================
-         11. ENDING SCREEN
-    ========================== -->
-    <section id="ending-screen" class="hidden">
-        <div class="gingham-card">
-            <div class="scallop-inner text-center">
-                <h1 class="script-title">I Love You ❤️</h1>
-                <p class="tagline">Counting down the days until we close the distance forever.</p>
-                <button id="restartBtn" class="pill-btn surprise-btn" style="margin-top:20px;">Replay Our Story ↺</button>
+        <!-- =========================================
+             8. OUR MEMORIES & JOURNEY
+        ========================================= -->
+        <section id="memories-screen" class="hidden-screen">
+            <div class="scrapbook-board wide-board">
+                <h2 class="vintage-subtitle">Stories We Wrote Together 📖</h2>
+                <p class="vintage-quote">Every chapter made our love stronger.</p>
+                
+                <div class="memory-cards-container">
+                    <div class="story-card">
+                        <div class="story-badge">Chapter 1</div>
+                        <h3>The Sweet Beginning</h3>
+                        <div class="story-decor-icon">✨ 🦋</div>
+                        <p>The butterflies, late-night voice notes, and falling head over heels across the screen from the very first day.</p>
+                    </div>
+
+                    <div class="story-card highlight-card">
+                        <div class="story-badge highlight-badge">Chapter 2</div>
+                        <h3>The 6-Month Pause</h3>
+                        <div class="story-decor-icon">⏳ 🌙</div>
+                        <p>Six months apart proved that no matter the silence or space, you were the only one my heart ever searched for.</p>
+                    </div>
+
+                    <div class="story-card">
+                        <div class="story-badge">Chapter 3</div>
+                        <h3>Finding Our Way Back</h3>
+                        <div class="story-decor-icon">💍 ❤️</div>
+                        <p>Stronger, closer, and choosing each other every single day. Here's to our 1st year and forever to go.</p>
+                    </div>
+                </div>
+
+                <div class="nav-row">
+                    <button class="nav-back-btn" data-target="firsts-screen">← Back</button>
+                    <button id="memoriesNextBtn" class="nav-arrow-btn" title="Next">➔</button>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- =========================
-         AUDIO ELEMENTS
-    ========================== -->
-    <audio id="bgMusic" src="assets/audio/our-song.mp3" preload="auto"></audio>
+        <!-- =========================================
+             9. POLAROIDS & MEMORY GARLAND
+        ========================================= -->
+        <section id="gallery-screen" class="hidden-screen">
+            <div class="garland-board">
+                <h2 class="vintage-subtitle">Snapshots & Sweet Reminders</h2>
+                <p class="vintage-quote">Hanging on my heart's string ✨</p>
+                
+                <div class="garland-string">
+                    <div class="polaroid-pin rot-left">
+                        <div class="pin">📌</div>
+                        <div class="polaroid-frame-inner">
+                            <img src="assets/images/her-avatar.jpg" alt="The Prettiest Girl">
+                        </div>
+                        <span class="pin-caption">The prettiest girl</span>
+                    </div>
+
+                    <div class="polaroid-pin rot-right">
+                        <div class="pin">📌</div>
+                        <div class="polaroid-frame-inner quote-inner">
+                            <span class="quote-symbol">💌</span>
+                            <p class="inner-quote">"You are my favorite notification."</p>
+                        </div>
+                        <span class="pin-caption">Always in my thoughts</span>
+                    </div>
+
+                    <div class="polaroid-pin rot-left">
+                        <div class="pin">📌</div>
+                        <div class="polaroid-frame-inner">
+                            <img src="assets/images/his-avatar.jpg" alt="Him">
+                        </div>
+                        <span class="pin-caption">Always missing you</span>
+                    </div>
+                </div>
+
+                <div class="nav-row">
+                    <button class="nav-back-btn" data-target="memories-screen">← Back</button>
+                    <button id="galleryNextBtn" class="nav-arrow-btn" title="Next">➔</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================================
+             10. RETRO LETTER & IPOD
+        ========================================= -->
+        <section id="letter-screen" class="hidden-screen">
+            <div class="letter-card-container">
+                <div class="letter-note">
+                    <div class="letter-header-row">
+                        <h3>To my favorite person across the miles...</h3>
+                        <span class="wax-seal">❤️</span>
+                    </div>
+                    <div class="scrolling-letter-body">
+                        <p>Happy 1st Anniversary, my beautiful love!</p>
+                        <p>Even though we spent six months apart, our story never truly stopped. It only proved that true love always finds its way back home.</p>
+                        <p>Thank you for sticking by me, answering my calls, and loving me across every single kilometer between Kolkata and Aran.</p>
+                        <p>You are worth every second of waiting. I can't wait until distance is just a memory and I can hold you close.</p>
+                        <p class="persian-love-note">«تو زیباترین اتفاق زندگی منی، عاشقتم»</p>
+                        <p class="sign-off">Yours always & forever,<br>❤️ <strong>Anurag</strong></p>
+                    </div>
+                </div>
+
+                <div class="ipod-widget">
+                    <div class="ipod-screen">
+                        <div class="screen-header">
+                            <span>Now Playing</span>
+                            <span>🔋 100%</span>
+                        </div>
+                        <div class="album-art-wrap">
+                            <div class="spinning-disc">💿</div>
+                        </div>
+                        <div class="song-title">Our Song 🎵</div>
+                        <div class="artist-title">Distance Playlist</div>
+                        
+                        <!-- Retro Equalizer Animation -->
+                        <div class="equalizer" id="equalizer">
+                            <span class="bar"></span>
+                            <span class="bar"></span>
+                            <span class="bar"></span>
+                            <span class="bar"></span>
+                            <span class="bar"></span>
+                        </div>
+                    </div>
+
+                    <div class="ipod-wheel" id="ipodWheel" title="Tap to Play / Pause Music">
+                        <span class="wheel-text top-t">MENU</span>
+                        <span class="wheel-text left-t">|◄◄</span>
+                        <span class="wheel-text right-t">►►|</span>
+                        <span class="wheel-text bot-t">►||</span>
+                        <div class="ipod-center-btn" id="musicToggle">▶</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-row">
+                <button class="nav-back-btn" data-target="gallery-screen">← Back</button>
+                <button id="letterNextBtn" class="nav-arrow-btn" title="Next">➔</button>
+            </div>
+        </section>
+
+        <!-- =========================================
+             11. ENDING SCREEN & REPLAY
+        ========================================= -->
+        <section id="ending-screen" class="hidden-screen">
+            <div class="gingham-card finale-card">
+                <div class="scallop-inner text-center">
+                    <div class="persian-tag">«عاشقتم تا ابد»</div>
+                    <h1 class="script-title">I Love You ❤️</h1>
+                    <p class="tagline">Counting down every second until we close the distance forever.</p>
+                    
+                    <div class="interactive-heart-burst">
+                        <button id="sendLoveBtn" class="pill-btn surprise-btn big-btn">Send Love Hearts 💖</button>
+                    </div>
+
+                    <div class="ending-actions">
+                        <button id="restartBtn" class="pill-btn secondary-btn">Replay Our Story ↺</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Audio Elements (with resilient error catching) -->
+    <audio id="bgMusic" src="assets/audio/our-song.mp3" preload="auto" loop></audio>
     <audio id="keypadSound" src="assets/audio/keypad.mp3" preload="auto"></audio>
     <audio id="btnClickSound" src="assets/audio/click.mp3" preload="auto"></audio>
     <audio id="giftPopSound" src="assets/audio/gift-pop.mp3" preload="auto"></audio>
 
+    <!-- Application Script -->
     <script src="script.js"></script>
 </body>
 </html>

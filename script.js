@@ -1,15 +1,20 @@
 // ==========================================
-// Telegram WebApp Initialization
+// Telegram WebApp Initialization & Safe Config
 // ==========================================
 if (window.Telegram && window.Telegram.WebApp) {
-    window.Telegram.WebApp.ready();
-    window.Telegram.WebApp.expand();
+    try {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+        window.Telegram.WebApp.enableClosingConfirmation?.();
+    } catch (e) {
+        console.warn("Telegram WebApp init notice:", e);
+    }
 }
 
 // ==========================================
 // Passcode & Story Configuration
 // ==========================================
-const PASSWORD = "2309"; // Set to your starting anniversary date (DD MM)
+const PASSWORD = "2309"; // 23 September (DDMM)
 let enteredCode = "";
 
 const screens = document.querySelectorAll("section");
@@ -23,27 +28,101 @@ const bgMusic = document.getElementById("bgMusic");
 const keypadSound = document.getElementById("keypadSound");
 const btnClickSound = document.getElementById("btnClickSound");
 const giftPopSound = document.getElementById("giftPopSound");
+
 const musicToggle = document.getElementById("musicToggle");
+const floatingMusicToggle = document.getElementById("floatingMusicToggle");
 const equalizer = document.getElementById("equalizer");
+const miniEqualizer = document.getElementById("miniEqualizer");
+const globalMusicBar = document.getElementById("global-music-bar");
+
+// ------------------------------------------
+// Haptic & Sound Effects (Resilient)
+// ------------------------------------------
+function triggerHaptic(type = "light") {
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+        try {
+            if (type === "success") window.Telegram.WebApp.HapticFeedback.notificationOccurred("success");
+            else if (type === "error") window.Telegram.WebApp.HapticFeedback.notificationOccurred("error");
+            else window.Telegram.WebApp.HapticFeedback.impactOccurred(type);
+        } catch (e) {}
+    }
+}
 
 function playSound(audioEl) {
     if (audioEl) {
-        audioEl.currentTime = 0;
-        audioEl.play().catch(() => {});
+        try {
+            audioEl.currentTime = 0;
+            audioEl.play().catch(() => {});
+        } catch (e) {}
     }
 }
 
+// ------------------------------------------
+// Music Sync Management
+// ------------------------------------------
+let isMusicPlaying = false;
+
+function setMusicState(playing) {
+    if (!bgMusic) return;
+    
+    if (playing) {
+        bgMusic.play().then(() => {
+            isMusicPlaying = true;
+            if (musicToggle) musicToggle.textContent = "❚❚";
+            if (equalizer) equalizer.classList.add("playing");
+            if (miniEqualizer) miniEqualizer.classList.add("playing");
+            if (globalMusicBar) globalMusicBar.classList.remove("hidden");
+        }).catch(err => {
+            console.log("Audio autoplay restricted:", err);
+            isMusicPlaying = false;
+        });
+    } else {
+        bgMusic.pause();
+        isMusicPlaying = false;
+        if (musicToggle) musicToggle.textContent = "▶";
+        if (equalizer) equalizer.classList.remove("playing");
+        if (miniEqualizer) miniEqualizer.classList.remove("playing");
+    }
+}
+
+function toggleMusic() {
+    triggerHaptic("light");
+    playSound(btnClickSound);
+    setMusicState(!isMusicPlaying);
+}
+
+if (musicToggle) musicToggle.addEventListener("click", toggleMusic);
+if (floatingMusicToggle) floatingMusicToggle.addEventListener("click", toggleMusic);
+
+// ------------------------------------------
+// Screen Navigation
+// ------------------------------------------
 function showScreen(screenId) {
-    screens.forEach(screen => screen.classList.add("hidden"));
+    screens.forEach(screen => {
+        screen.classList.remove("active-screen");
+        screen.classList.add("hidden-screen");
+    });
+    
     const target = document.getElementById(screenId);
     if (target) {
-        target.classList.remove("hidden");
+        target.classList.remove("hidden-screen");
+        target.classList.add("active-screen");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Show floating music bar once unlocked beyond passcode/gift
+    if (globalMusicBar) {
+        if (screenId === "passcode-screen" || screenId === "error-screen") {
+            globalMusicBar.classList.add("hidden");
+        } else {
+            globalMusicBar.classList.remove("hidden");
+        }
     }
 }
 
-// --------------------------
+// ------------------------------------------
 // Passcode Logic
-// --------------------------
+// ------------------------------------------
 function updateBoxes() {
     boxes.forEach((box, index) => {
         if (index < enteredCode.length) {
@@ -58,17 +137,19 @@ function updateBoxes() {
 
 function addDigit(digit) {
     if (enteredCode.length >= 4) return;
+    triggerHaptic("light");
     playSound(keypadSound);
     enteredCode += digit;
     updateBoxes();
 
     if (enteredCode.length === 4) {
-        setTimeout(checkPassword, 250);
+        setTimeout(checkPassword, 280);
     }
 }
 
 function removeDigit() {
     if (enteredCode.length === 0) return;
+    triggerHaptic("rigid");
     playSound(keypadSound);
     enteredCode = enteredCode.slice(0, -1);
     updateBoxes();
@@ -76,9 +157,13 @@ function removeDigit() {
 
 function checkPassword() {
     if (enteredCode === PASSWORD) {
+        triggerHaptic("success");
         triggerConfetti();
+        // Start romantic bg music
+        setMusicState(true);
         showScreen("gift-screen");
     } else {
+        triggerHaptic("error");
         showScreen("error-screen");
     }
 }
@@ -89,17 +174,18 @@ function resetPasscode() {
     showScreen("passcode-screen");
 }
 
-// --------------------------
-// Keypad & Audio Listeners
-// --------------------------
+// ------------------------------------------
+// Keypad & Hardware Keyboard Listeners
+// ------------------------------------------
 keyButtons.forEach(button => {
     button.addEventListener("click", () => {
-        const val = button.textContent.trim();
-        if (val === "⌫") removeDigit();
-        else if (val === "UNLOCK") {
+        const val = button.getAttribute("data-key") || button.textContent.trim();
+        if (val === "backspace" || val === "⌫") removeDigit();
+        else if (val === "enter" || val === "UNLOCK") {
+            triggerHaptic("medium");
             playSound(keypadSound);
             if (enteredCode.length === 4) checkPassword();
-        } else {
+        } else if (/^[0-9]$/.test(val)) {
             addDigit(val);
         }
     });
@@ -111,110 +197,174 @@ document.addEventListener("keydown", (e) => {
     else if (e.key === "Enter" && enteredCode.length === 4) checkPassword();
 });
 
-if (musicToggle && bgMusic) {
-    musicToggle.addEventListener("click", () => {
+// ------------------------------------------
+// Screen Next & Back Handlers
+// ------------------------------------------
+if (tryAgainBtn) {
+    tryAgainBtn.addEventListener("click", () => {
         playSound(btnClickSound);
-        if (bgMusic.paused) {
-            bgMusic.play();
-            musicToggle.textContent = "❚❚";
-            if (equalizer) equalizer.classList.add("playing");
-        } else {
-            bgMusic.pause();
-            musicToggle.textContent = "▶";
-            if (equalizer) equalizer.classList.remove("playing");
-        }
+        triggerHaptic("light");
+        resetPasscode();
     });
 }
 
-// --------------------------
-// Navigation Handlers
-// --------------------------
-tryAgainBtn.addEventListener("click", () => {
-    playSound(btnClickSound);
-    resetPasscode();
-});
+if (giftBox) {
+    giftBox.addEventListener("click", () => {
+        triggerHaptic("success");
+        playSound(giftPopSound);
+        const animatedBox = giftBox.querySelector(".gift-animated");
+        if (animatedBox) animatedBox.textContent = "💖";
+        triggerConfetti();
+        setMusicState(true);
+    });
+}
 
-giftBox.addEventListener("click", () => {
-    playSound(giftPopSound);
-    document.querySelector(".gift-animated").textContent = "💖";
-    triggerConfetti();
-});
+if (openGiftBtn) {
+    openGiftBtn.addEventListener("click", () => {
+        triggerHaptic("medium");
+        playSound(btnClickSound);
+        setMusicState(true);
+        showScreen("welcome-screen");
+    });
+}
 
-openGiftBtn.addEventListener("click", () => {
+document.getElementById("startJourneyBtn")?.addEventListener("click", () => {
     playSound(btnClickSound);
-    showScreen("welcome-screen");
-});
-
-document.getElementById("startJourneyBtn").addEventListener("click", () => {
-    playSound(btnClickSound);
+    triggerHaptic("light");
     showScreen("calendar-screen");
 });
 
-document.getElementById("calendarNextBtn").addEventListener("click", () => {
+document.getElementById("calendarNextBtn")?.addEventListener("click", () => {
     playSound(btnClickSound);
+    triggerHaptic("light");
     showScreen("map-screen");
 });
 
-document.getElementById("mapNextBtn").addEventListener("click", () => {
+document.getElementById("mapNextBtn")?.addEventListener("click", () => {
     playSound(btnClickSound);
+    triggerHaptic("light");
     showScreen("firsts-screen");
 });
 
-document.getElementById("firstsNextBtn").addEventListener("click", () => {
+document.getElementById("firstsNextBtn")?.addEventListener("click", () => {
     playSound(btnClickSound);
+    triggerHaptic("light");
     showScreen("memories-screen");
 });
 
-document.getElementById("memoriesNextBtn").addEventListener("click", () => {
+document.getElementById("memoriesNextBtn")?.addEventListener("click", () => {
     playSound(btnClickSound);
+    triggerHaptic("light");
     showScreen("gallery-screen");
 });
 
-document.getElementById("galleryNextBtn").addEventListener("click", () => {
+document.getElementById("galleryNextBtn")?.addEventListener("click", () => {
     playSound(btnClickSound);
+    triggerHaptic("light");
     showScreen("letter-screen");
 });
 
-document.getElementById("letterNextBtn").addEventListener("click", () => {
+document.getElementById("letterNextBtn")?.addEventListener("click", () => {
     playSound(btnClickSound);
+    triggerHaptic("success");
     triggerConfetti();
     showScreen("ending-screen");
 });
 
-document.getElementById("restartBtn").addEventListener("click", () => {
+// Dynamic Back Buttons Listener
+document.querySelectorAll(".nav-back-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        playSound(btnClickSound);
+        triggerHaptic("light");
+        const targetScreen = btn.getAttribute("data-target");
+        if (targetScreen) showScreen(targetScreen);
+    });
+});
+
+// Ending screen actions
+document.getElementById("sendLoveBtn")?.addEventListener("click", () => {
+    triggerHaptic("success");
+    playSound(giftPopSound);
+    triggerConfetti();
+    spawnHeartExplosion();
+});
+
+document.getElementById("restartBtn")?.addEventListener("click", () => {
     playSound(btnClickSound);
-    if (bgMusic) {
-        bgMusic.pause();
-        bgMusic.currentTime = 0;
-        musicToggle.textContent = "▶";
-        if (equalizer) equalizer.classList.remove("playing");
-    }
+    triggerHaptic("medium");
     resetPasscode();
 });
 
-// Floating hearts background
+// ------------------------------------------
+// Floating Background Hearts Generator
+// ------------------------------------------
 function initFloatingHearts() {
     const bg = document.getElementById("heart-bg");
     if (!bg) return;
+    
+    const heartSymbols = ["❤️", "💖", "💕", "✨", "🌸"];
+    
     setInterval(() => {
+        if (document.hidden) return;
         const heart = document.createElement("div");
         heart.classList.add("floating-heart");
-        heart.innerHTML = "❤️";
-        heart.style.left = Math.random() * 100 + "vw";
-        heart.style.animationDuration = (Math.random() * 3 + 5) + "s";
-        heart.style.fontSize = (Math.random() * 12 + 12) + "px";
+        heart.textContent = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+        heart.style.left = Math.random() * 95 + "vw";
+        heart.style.animationDuration = (Math.random() * 3 + 5.5) + "s";
+        heart.style.fontSize = (Math.random() * 12 + 14) + "px";
         bg.appendChild(heart);
-        setTimeout(() => heart.remove(), 8000);
-    }, 700);
+        setTimeout(() => heart.remove(), 8500);
+    }, 650);
 }
 initFloatingHearts();
 
+// ------------------------------------------
+// Zero-Dependency Fallback Confetti Engine
+// (Guaranteed to work in Iran with VPN drops)
+// ------------------------------------------
 function triggerConfetti() {
     if (typeof confetti === "function") {
-        confetti({
-            particleCount: 75,
-            spread: 60,
-            origin: { y: 0.6 }
+        try {
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#C84B5B', '#D4AF37', '#FFF4EA', '#E29578', '#FF69B4']
+            });
+            return;
+        } catch (e) {}
+    }
+    // Fallback lightweight DOM heart burst
+    spawnHeartExplosion();
+}
+
+function spawnHeartExplosion() {
+    const burstCount = 25;
+    const symbols = ["💖", "❤️", "✨", "🌹", "💌"];
+    for (let i = 0; i < burstCount; i++) {
+        const p = document.createElement("div");
+        p.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        p.style.position = "fixed";
+        p.style.left = "50vw";
+        p.style.top = "50vh";
+        p.style.fontSize = (Math.random() * 16 + 18) + "px";
+        p.style.pointerEvents = "none";
+        p.style.zIndex = "999";
+        p.style.transition = "all 1s cubic-bezier(0.25, 1, 0.5, 1)";
+        p.style.opacity = "1";
+        
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * 200 + 80;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+
+        document.body.appendChild(p);
+
+        requestAnimationFrame(() => {
+            p.style.transform = `translate(${tx}px, ${ty}px) scale(${Math.random() * 0.8 + 0.8}) rotate(${Math.random() * 360}deg)`;
+            p.style.opacity = "0";
         });
+
+        setTimeout(() => p.remove(), 1050);
     }
 }
