@@ -26,7 +26,6 @@ const openGiftBtn = document.getElementById("openGiftBtn");
 
 const bgMusic = document.getElementById("bgMusic");
 const keypadSound = document.getElementById("keypadSound");
-const btnClickSound = document.getElementById("btnClickSound");
 const giftPopSound = document.getElementById("giftPopSound");
 
 const musicToggle = document.getElementById("musicToggle");
@@ -87,7 +86,6 @@ function setMusicState(playing) {
 
 function toggleMusic() {
     triggerHaptic("light");
-    playSound(btnClickSound);
     setMusicState(!isMusicPlaying);
 }
 
@@ -202,7 +200,6 @@ document.addEventListener("keydown", (e) => {
 // ------------------------------------------
 if (tryAgainBtn) {
     tryAgainBtn.addEventListener("click", () => {
-        playSound(btnClickSound);
         triggerHaptic("light");
         resetPasscode();
     });
@@ -222,50 +219,42 @@ if (giftBox) {
 if (openGiftBtn) {
     openGiftBtn.addEventListener("click", () => {
         triggerHaptic("medium");
-        playSound(btnClickSound);
         setMusicState(true);
         showScreen("welcome-screen");
     });
 }
 
 document.getElementById("startJourneyBtn")?.addEventListener("click", () => {
-    playSound(btnClickSound);
     triggerHaptic("light");
     showScreen("calendar-screen");
 });
 
 document.getElementById("calendarNextBtn")?.addEventListener("click", () => {
-    playSound(btnClickSound);
     triggerHaptic("light");
     showScreen("map-screen");
 });
 
 document.getElementById("mapNextBtn")?.addEventListener("click", () => {
-    playSound(btnClickSound);
     triggerHaptic("light");
     showScreen("firsts-screen");
 });
 
 document.getElementById("firstsNextBtn")?.addEventListener("click", () => {
-    playSound(btnClickSound);
     triggerHaptic("light");
     showScreen("memories-screen");
 });
 
 document.getElementById("memoriesNextBtn")?.addEventListener("click", () => {
-    playSound(btnClickSound);
     triggerHaptic("light");
     showScreen("gallery-screen");
 });
 
 document.getElementById("galleryNextBtn")?.addEventListener("click", () => {
-    playSound(btnClickSound);
     triggerHaptic("light");
     showScreen("letter-screen");
 });
 
 document.getElementById("letterNextBtn")?.addEventListener("click", () => {
-    playSound(btnClickSound);
     triggerHaptic("success");
     triggerConfetti();
     showScreen("ending-screen");
@@ -274,7 +263,6 @@ document.getElementById("letterNextBtn")?.addEventListener("click", () => {
 // Dynamic Back Buttons Listener
 document.querySelectorAll(".nav-back-btn").forEach(btn => {
     btn.addEventListener("click", () => {
-        playSound(btnClickSound);
         triggerHaptic("light");
         const targetScreen = btn.getAttribute("data-target");
         if (targetScreen) showScreen(targetScreen);
@@ -290,7 +278,6 @@ document.getElementById("sendLoveBtn")?.addEventListener("click", () => {
 });
 
 document.getElementById("restartBtn")?.addEventListener("click", () => {
-    playSound(btnClickSound);
     triggerHaptic("medium");
     resetPasscode();
 });
