@@ -367,6 +367,8 @@ document.getElementById("sendLoveBtn")?.addEventListener("click", async () => {
         } catch (err) {
             console.warn("Direct API notice:", err);
         }
+    }
+
     if (!sent) {
         showToast("💖 Love hearts sent!");
     }
