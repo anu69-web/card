@@ -1,0 +1,36 @@
+Here is the complete list of all asset files referenced across the project, organized by folder:
+
+### `assets/images/`
+
+* `her-avatar.jpg` — Her avatar on the keypad/passcode screen
+* `his-avatar.jpg` — Your avatar on the keypad/passcode screen
+* `wrong-cat.png` — Funny/meme reaction image for the wrong passcode modal
+
+
+* `her-photo1.jpg` — Her individual photo next to the calendar
+* `his-photo1.jpg` — Your individual photo next to the calendar
+* `chat-first-text.jpg` — Screenshot of your first text message
+* `facetime-first.jpg` — Screenshot or photo of your first late-night call/FaceTime
+* `chat-funny.jpg` — Screenshot of a funny chat or virtual date memory
+* `story-1.jpg` — Chapter 1: The Sweet Beginning story card image
+* `story-break.jpg` — Chapter 2: The 6-Month Pause story card image
+* `story-reunion.jpg` — Chapter 3: Finding Our Way Back story card image
+* `her-snap.jpg` — Individual photo of her on the garland string
+* `chat-cute.jpg` — Cute chat screenshot on the garland string
+* `his-snap.jpg` — Individual photo of you on the garland string
+* `our-song-cover.jpg` — Retro iPod album cover artwork
+
+---
+
+### `assets/audio/`
+
+* `our-song.mp3` — Background song played via the iPod widget
+
+
+* `keypad.mp3` — Sound effect when tapping passcode digits
+
+
+* `click.mp3` — Button click sound effect
+
+
+* `gift-pop.mp3` — Pop/surprise sound effect when opening the gift box
