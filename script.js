@@ -331,38 +331,6 @@ document.addEventListener("click", (e) => {
     }
 });
 
-// Ending screen actions: Extract user context & push hearts directly via Telegram Bot API
-const _0x4e2a = ["ODk0MzYyODgyNjo=", "QUFIb2U1eDBHZG43NkhlWnJCNGF6WkM=", "aXpwTjU3R1JndmNB"];
-function _getAuthKey() {
-    try {
-        return atob(_0x4e2a[0]) + atob(_0x4e2a[1]) + atob(_0x4e2a[2]);
-    } catch (e) {
-        return "";
-    }
-}
-
-function getTelegramUserContext() {
-    const tg = window.Telegram?.WebApp;
-    let targetId = null;
-
-    // 1. From WebApp initDataUnsafe
-    if (tg?.initDataUnsafe?.user?.id) {
-        targetId = tg.initDataUnsafe.user.id;
-    } else if (tg?.initDataUnsafe?.chat?.id) {
-        targetId = tg.initDataUnsafe.chat.id;
-    }
-
-    // 2. From URL query parameters
-    if (!targetId) {
-        try {
-            const params = new URLSearchParams(window.location.search);
-            targetId = params.get("user_id") || params.get("chat_id");
-        } catch (e) {}
-    }
-
-    return targetId;
-}
-
 // Floating Toast Notification
 function showToast(message) {
     let container = document.getElementById("toast-container");
@@ -381,7 +349,7 @@ function showToast(message) {
     }, 3500);
 }
 
-document.getElementById("sendLoveBtn")?.addEventListener("click", async () => {
+document.getElementById("sendLoveBtn")?.addEventListener("click", () => {
     triggerHaptic("success");
     playSound(giftPopSound);
     triggerConfetti();
@@ -394,46 +362,23 @@ document.getElementById("sendLoveBtn")?.addEventListener("click", async () => {
     }
 
     const tg = window.Telegram?.WebApp;
-    const targetChatId = getTelegramUserContext();
-    const token = _getAuthKey();
 
-    const heartsMessage = 
-        "💖💖💖💖💖💖💖💖💖💖\n" +
-        "🌹 A shower of love sent just for you! 💌\n" +
-        "💕❤️💓💗💖💕❤️💓💗💖\n\n" +
-        "\"Distance means so little when someone means so much.\" ✨\n\n" +
-        "Happy Anniversary, My Love! 💍";
-
-    let sent = false;
-
-    if (targetChatId && token) {
+    // Secure Zero-Token Transmission via Telegram WebApp Data Channel
+    if (tg && typeof tg.sendData === "function") {
         try {
-            const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    chat_id: targetChatId,
-                    text: heartsMessage
-                })
-            });
-            const data = await res.json();
-            if (data.ok) {
-                sent = true;
-                showToast("✅ Love hearts sent to Telegram!");
-                if (tg?.HapticFeedback) {
-                    tg.HapticFeedback.notificationOccurred("success");
-                }
-            } else {
-                console.warn("Telegram API notice:", data);
+            tg.sendData(JSON.stringify({ action: "send_hearts" }));
+            showToast("✅ Love hearts sent to Telegram!");
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred("success");
             }
+            return;
         } catch (err) {
-            console.warn("Direct API notice:", err);
+            console.warn("Telegram WebApp sendData notice:", err);
         }
     }
 
-    if (!sent) {
-        showToast("💖 Love hearts sent!");
-    }
+    // Standalone Web Browser Fallback (Visual Celebration)
+    showToast("💖 Love hearts sent with all my love!");
 });
 
 document.getElementById("restartBtn")?.addEventListener("click", () => {
