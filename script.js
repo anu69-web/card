@@ -349,45 +349,8 @@ function showToast(message) {
     }, 3500);
 }
 
-document.getElementById("sendLoveBtn")?.addEventListener("click", () => {
-    triggerHaptic("success");
-    playSound(giftPopSound);
-    triggerConfetti();
-    spawnHeartExplosion();
-
-    const sendBtn = document.getElementById("sendLoveBtn");
-    if (sendBtn) {
-        sendBtn.textContent = "💖 Love Hearts Sent! 💌";
-        sendBtn.style.background = "#2E5A44";
-    }
-
-    const tg = window.Telegram?.WebApp;
-
-    // Secure Zero-Token Transmission via Telegram WebApp Data Channel
-    if (tg && typeof tg.sendData === "function") {
-        try {
-            tg.sendData(JSON.stringify({ action: "send_hearts" }));
-            showToast("✅ Love hearts sent to Telegram!");
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred("success");
-            }
-            return;
-        } catch (err) {
-            console.warn("Telegram WebApp sendData notice:", err);
-        }
-    }
-
-    // Standalone Web Browser Fallback (Visual Celebration)
-    showToast("💖 Love hearts sent with all my love!");
-});
-
 document.getElementById("restartBtn")?.addEventListener("click", () => {
     triggerHaptic("medium");
-    const sendBtn = document.getElementById("sendLoveBtn");
-    if (sendBtn) {
-        sendBtn.textContent = "Send Love Hearts 💖";
-        sendBtn.style.background = "";
-    }
     resetPasscode();
 });
 
