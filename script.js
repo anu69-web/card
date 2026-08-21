@@ -178,9 +178,6 @@ function resetPasscode() {
 
 function checkPasscode() {
     if (enteredCode === PASSWORD) {
-        // Set secure authentication cookie immediately upon PIN unlock
-        document.cookie = "auth_unlocked=true; path=/; max-age=604800; Secure; SameSite=Strict";
-        
         triggerHaptic("success");
         playSound(giftPopSound);
         triggerConfetti();
